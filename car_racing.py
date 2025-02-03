@@ -10,7 +10,7 @@ from pygame import display
 
 # Set the desired window position (x, y)
 x = 600
-y = 400
+y = 430
 # Set the environment variable
 os.environ["SDL_VIDEO_WINDOW_POS"] = f"{x},{y}"
 
@@ -44,11 +44,11 @@ def test_single_env(
     episode = 0
     m_aloss, m_closs = 0, 0
     n_updates = 0
-    while step < n_steps and episode < n_episodes:
+    while True:  # step < n_steps and episode < n_episodes:
 
         ep_reward = 0
         obs, info = env.reset()
-        display.set_mode((600, 400))
+        display.set_mode((600, 430))
         obs = obs.flatten()
         obs = np.pad(obs, (0, joint_obs_dim - len(obs)), "constant")
 
@@ -111,7 +111,7 @@ def test_single_env(
             ) or (
                 # and len(buffer.episode_inds) > 5
                 online
-                and buffer.steps_recorded > 511
+                and buffer.steps_recorded > 2047
             ):
                 # print(online)
                 if online:
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         discrete_env = gym.make(
             gym_disc_env, continuous=False, render_mode="human"
         )  # """MountainCar-v0")  # )   # , render_mode="human")
-        display.set_mode((600, 400))
+        display.set_mode((600, 430))
     # discrete_env = TTTNvN(2, 2, "", True, True)
     # discrete_env.__dict__["observation_space"] = np.zeros(18)
     # discrete_env.__dict__["action_space"] = aspace(9)
@@ -173,11 +173,35 @@ if __name__ == "__main__":
     def make_models():
         print("Making Model")
         names = [
-            "DQN",
             "PG",
+            "DQN",
         ]
 
         models = [
+            PG(
+                obs_dim=joint_obs_dim,
+                discrete_action_dims=[discrete_env.action_space.n],
+                continuous_action_dim=0,  # continuous_env.action_space.shape[0],
+                hidden_dims=np.array([64, 64]),
+                min_actions=None,  # continuous_env.action_space.low,
+                max_actions=None,  # continuous_env.action_space.high,
+                gamma=0.999,
+                device="cuda",
+                entropy_loss=0.05,
+                mini_batch_size=64,
+                n_epochs=4,
+                lr=1e-4,
+                advantage_type="gae",
+                norm_advantages=False,
+                anneal_lr=2000000,
+                value_loss_coef=0.5,  # 5,
+                ppo_clip=0.2,
+                value_clip=0.5,
+                orthogonal=True,
+                activation="tanh",
+                starting_actorlogstd=0,
+                gae_lambda=0.95,
+            ),
             DQN(
                 obs_dim=joint_obs_dim,
                 continuous_action_dims=0,  # continuous_env.action_space.shape[0],
@@ -191,31 +215,7 @@ if __name__ == "__main__":
                 dueling=True,
                 n_c_action_bins=5,
                 entropy=0.03,
-                # munchausen=0.9,
-            ),
-            PG(
-                obs_dim=joint_obs_dim,
-                discrete_action_dims=[discrete_env.action_space.n],
-                continuous_action_dim=0,  # continuous_env.action_space.shape[0],
-                hidden_dims=np.array([64, 64]),
-                min_actions=None,  # continuous_env.action_space.low,
-                max_actions=None,  # continuous_env.action_space.high,
-                gamma=0.999,
-                device="cuda",
-                entropy_loss=0.01,
-                mini_batch_size=64,
-                n_epochs=4,
-                lr=3e-4,
-                advantage_type="gae",
-                norm_advantages=False,
-                anneal_lr=2000000,
-                value_loss_coef=0.5,  # 5,
-                ppo_clip=0.2,
-                value_clip=0.5,
-                orthogonal=True,
-                activation="tanh",
-                starting_actorlogstd=0,
-                gae_lambda=0.98,
+                munchausen=0.9,
             ),
         ]
         return models, names

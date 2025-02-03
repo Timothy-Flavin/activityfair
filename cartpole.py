@@ -43,7 +43,7 @@ def test_single_env(
     episode = 0
     m_aloss, m_closs = 0, 0
     n_updates = 0
-    while step < n_steps and episode < n_episodes:
+    while True:  # step < n_steps and episode < n_episodes:
 
         ep_reward = 0
         obs, info = env.reset()
@@ -181,11 +181,12 @@ if __name__ == "__main__":
 
     if gym_disc_env == "LunarLander-v2":
         discrete_env = gym.make(
-            gym_disc_env, continuous=False, render_mode="human"
+            gym_disc_env,
+            continuous=False,  # render_mode="human"
         )  # """MountainCar-v0")  # )   # , render_mode="human")
 
     else:
-        discrete_env = gym.make(gym_disc_env, render_mode="human")
+        discrete_env = gym.make(gym_disc_env)  # , #render_mode="human")
 
     # discrete_env = TTTNvN(2, 2, "", True, True)
     # discrete_env.__dict__["observation_space"] = np.zeros(18)
@@ -193,9 +194,9 @@ if __name__ == "__main__":
     # discrete_env.__dict__["close"] = __close
 
     if gym_cont_env == "LunarLander-v2":
-        continuous_env = gym.make(gym_cont_env, continuous=True, render_mode="human")
+        continuous_env = gym.make(gym_cont_env, continuous=True)
     else:
-        continuous_env = gym.make(gym_cont_env, render_mode="human")
+        continuous_env = gym.make(gym_cont_env)
 
     joint_obs_dim = (
         discrete_env.observation_space.shape[0]
@@ -205,8 +206,8 @@ if __name__ == "__main__":
     def make_models():
         print("Making Model")
         names = [
-            "DQN",
             "TD3",
+            "DQN",
             "PG",
             "DDPG",
         ]
@@ -217,21 +218,6 @@ if __name__ == "__main__":
             continuous_env.action_space.shape[0],
         )
         models = [
-            DQN(
-                obs_dim=joint_obs_dim,
-                continuous_action_dims=continuous_env.action_space.shape[0],
-                max_actions=continuous_env.action_space.high,
-                min_actions=continuous_env.action_space.low,
-                discrete_action_dims=[discrete_env.action_space.n],
-                hidden_dims=[64, 64],
-                device="cuda:0",
-                lr=3e-4,
-                activation="relu",
-                dueling=True,
-                n_c_action_bins=5,
-                entropy=0.03,
-                # munchausen=0.9,
-            ),
             TD3(
                 obs_dim=joint_obs_dim,
                 discrete_action_dims=[discrete_env.action_space.n],
@@ -245,6 +231,21 @@ if __name__ == "__main__":
                 device="cuda",
                 eval_mode=False,
                 rand_steps=5000,
+            ),
+            DQN(
+                obs_dim=joint_obs_dim,
+                continuous_action_dims=continuous_env.action_space.shape[0],
+                max_actions=continuous_env.action_space.high,
+                min_actions=continuous_env.action_space.low,
+                discrete_action_dims=[discrete_env.action_space.n],
+                hidden_dims=[64, 64],
+                device="cuda:0",
+                lr=3e-4,
+                activation="relu",
+                dueling=True,
+                n_c_action_bins=5,
+                # entropy=0.03,
+                # munchausen=0.9,
             ),
             PG(
                 obs_dim=joint_obs_dim,

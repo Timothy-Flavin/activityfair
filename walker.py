@@ -9,7 +9,7 @@ import pygame
 
 # Set the desired window position (x, y)
 x = 0
-y = 400
+y = 430
 # Set the environment variable
 os.environ["SDL_VIDEO_WINDOW_POS"] = f"{x},{y}"
 
@@ -45,7 +45,7 @@ def test_single_env(
     episode = 0
     m_aloss, m_closs = 0, 0
     n_updates = 0
-    while step < n_steps and episode < n_episodes:
+    while True:  # step < n_steps and episode < n_episodes:
 
         ep_reward = 0
         obs, info = env.reset()
@@ -185,9 +185,9 @@ if __name__ == "__main__":
     def make_models():
         print("Making Model")
         names = [
-            "DQN",
-            "TD3",
             "PG",
+            "TD3",
+            "DQN",
             "DDPG",
         ]
         print(
@@ -197,35 +197,6 @@ if __name__ == "__main__":
             continuous_env.action_space.shape[0],
         )
         models = [
-            DQN(
-                obs_dim=joint_obs_dim,
-                continuous_action_dims=continuous_env.action_space.shape[0],
-                max_actions=continuous_env.action_space.high,
-                min_actions=continuous_env.action_space.low,
-                discrete_action_dims=[discrete_env.action_space.n],
-                hidden_dims=[64, 64],
-                device="cuda:0",
-                lr=3e-4,
-                activation="relu",
-                dueling=True,
-                n_c_action_bins=5,
-                entropy=0.03,
-                # munchausen=0.9,
-            ),
-            TD3(
-                obs_dim=joint_obs_dim,
-                discrete_action_dims=[discrete_env.action_space.n],
-                continuous_action_dim=continuous_env.action_space.shape[0],
-                min_actions=continuous_env.action_space.low,
-                max_actions=continuous_env.action_space.high,
-                hidden_dims=np.array([64, 64]),
-                gamma=0.99,
-                policy_frequency=2,
-                name="TD3_cd_test",
-                device="cuda",
-                eval_mode=False,
-                rand_steps=5000,
-            ),
             PG(
                 obs_dim=joint_obs_dim,
                 discrete_action_dims=[discrete_env.action_space.n],
@@ -249,6 +220,35 @@ if __name__ == "__main__":
                 activation="tanh",
                 starting_actorlogstd=0,
                 gae_lambda=0.98,
+            ),
+            TD3(
+                obs_dim=joint_obs_dim,
+                discrete_action_dims=[discrete_env.action_space.n],
+                continuous_action_dim=continuous_env.action_space.shape[0],
+                min_actions=continuous_env.action_space.low,
+                max_actions=continuous_env.action_space.high,
+                hidden_dims=np.array([64, 64]),
+                gamma=0.99,
+                policy_frequency=2,
+                name="TD3_cd_test",
+                device="cuda",
+                eval_mode=False,
+                rand_steps=5000,
+            ),
+            DQN(
+                obs_dim=joint_obs_dim,
+                continuous_action_dims=continuous_env.action_space.shape[0],
+                max_actions=continuous_env.action_space.high,
+                min_actions=continuous_env.action_space.low,
+                discrete_action_dims=[discrete_env.action_space.n],
+                hidden_dims=[64, 64],
+                device="cuda:0",
+                lr=3e-4,
+                activation="relu",
+                dueling=True,
+                n_c_action_bins=5,
+                entropy=0.03,
+                munchausen=0.9,
             ),
             DDPG(
                 obs_dim=joint_obs_dim,
@@ -306,8 +306,8 @@ if __name__ == "__main__":
                 env=continuous_env,
                 agent=models[n],
                 buffer=mem_buffer,
-                n_episodes=30000 if names[n] == "PG" else 30000,
-                n_steps=30000 if names[n] == "PG" else 15000,
+                n_episodes=3000000 if names[n] == "PG" else 3000000,
+                n_steps=3000000 if names[n] == "PG" else 1500000,
                 discrete=False,
                 joint_obs_dim=joint_obs_dim,
                 online=names[n] in ["PPO", "PG"],

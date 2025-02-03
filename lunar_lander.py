@@ -43,7 +43,7 @@ def test_single_env(
     episode = 0
     m_aloss, m_closs = 0, 0
     n_updates = 0
-    while step < n_steps and episode < n_episodes:
+    while True:  # step < n_steps and episode < n_episodes:
 
         ep_reward = 0
         obs, info = env.reset()
@@ -208,7 +208,7 @@ if __name__ == "__main__":
                 dueling=True,
                 n_c_action_bins=5,
                 entropy=0.03,
-                # munchausen=0.9,
+                munchausen=0.9,
             ),
             TD3(
                 obs_dim=joint_obs_dim,

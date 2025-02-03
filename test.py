@@ -229,7 +229,7 @@ if __name__ == "__main__":
                 dueling=True,
                 n_c_action_bins=5,
                 entropy=0.03,
-                # munchausen=0.9,
+                munchausen=0.9,
             ),
             TD3(
                 obs_dim=joint_obs_dim,
